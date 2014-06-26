@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var archive = require('../helpers/archive-helpers');
+
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -34,7 +36,18 @@ exports.isUrlInList = function(){
 exports.addUrlToList = function(){
 };
 
-exports.isURLArchived = function(){
+exports.isURLArchived = function(url, good, bad, resp){
+  fs.open(url, 'r', function(falsy){
+    if (falsy){
+      bad();
+      resp.end(url);
+    }else{
+      good.call(null, url, function(falsy1, data){
+        if (falsy1){ throw falsy1;}
+        resp.end(data);
+      });
+    }
+  });
 };
 
 exports.downloadUrls = function(){
