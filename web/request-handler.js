@@ -5,6 +5,8 @@ var fs = require('fs');
 // require more modules/folders here!
 
 exports.handleRequest = function (req, res) {
+
+  //console.log('FIRST Response', res);
   var requestRouter = {
     "GET": {
       code: 200,
@@ -13,56 +15,64 @@ exports.handleRequest = function (req, res) {
     "POST": {
       code: 200,
       handler: handlePOST
+    },
+    "OPTIONS": {
+      code: 200,
+      handler: handleOPTIONS
     }
   };
-
+  console.log(req.url);
   var statusCode = requestRouter[req.method].code || 404;
-  res.writeHead(statusCode, helpers.headers);
-
-  if (requestRouter[req.method]){
-    requestRouter[req.method].handler(req, res);
-  }
 
   if (statusCode === 404){
     res.end();
   }
 
+  if (requestRouter[req.method]){
+    requestRouter[req.method].handler(req, res);
+  }
+
+
 };
 
 var handleGET = function(req, res){
-  fs.readFile(archive.paths.siteAssets + "/index.html", function(err, data){
-    if (err){throw err;}
-    res.end(data);
-  });
+
+  var routes = {
+    '/': '/index.html',
+    '/favicon.ico': '/index.html'
+  };
+
+  var source = routes[req.url] || req.url;
+  // res.writeHead(200, helpers.headers);
+
+  helpers.serveAssets(res, source);
+
+
 };
+
+// exports.readListOfUrls = function(location, callback){
+//   fs.readFile(location, function(err, data){
+//     if (err){ throw err;}
+//     callback(data);
+//   });
+// };
+
 
 var handlePOST = function(req, res){
   var postData = "";
   req.on('data', function(chunk){
     postData += chunk;
   });
-  // req.on('end', function(){
-  //   //call does exist?
-  //   console.log(fs.existsSync(archive.paths.archivedSites + '/'+'www.google.com'));
-  //   fs.readFile(archive.paths.archivedSites + '/' + postData.split('=')[1], function(err, data){
-  //     if (err){throw err;}
-  //     res.end(data);
-  //   });
-  // });
-  var err = function(){
-    console.log('oops');
-  };
+
   req.on('end', function(){
-    postData = archive.paths.archivedSites + '/' + postData.split('=')[1];
-    archive.isURLArchived(postData, fs.readFile, err, res);
+    postData = '/' + postData.split('=')[1];
+    helpers.serveFile(res, postData);
   });
-
-
 };
 
-// var addThing = function(){
-//   console.log('things')
-// }
+var handleOPTIONS = function(){
+
+};
 
 
 
